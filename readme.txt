@@ -1,21 +1,33 @@
-MONOCHROMATIZATION
-
 The scripts contained in this folder enable the user to compare the extended 
 Ptychographic Iterative Engine (ePIE) and PaCMAN (Partial Coherence and 
 Monochromatization Algorithm with noise). The code was designed in MATLAB 2021b 
 and also verified in 2023a, so for older (or newer) releases minor changes may be 
-needed. Additionally, access to the Image Processing Toolbox (for the roipoly 
-function) and Parallel Computing Toolbox (for the parfor, parpool, and gpuArray 
-functions) are required.
+needed. Additionally, access to the following toolboxes are needed to run various
+functions:
+
+1. Image Processing Toolbox for the roipoly function (for easily defining parasitic
+   scattering regions.
+2. Parallel Computing Toolbox for the the parfor, parpool, and gpuArray 
+   functions.
+3. Statistics and Machine Learning Toolbox for easily adding Poisson noise with the
+   poissrnd function.
+
+
+If you use (Ms.) PaCMAN, please cite our paper "Robust Broadband Ptychography
+Algorithms for High-Harmonic Soft X-Ray Supercontinua" (2025).
+
+####################################################################################
+SINGLE-WAVELENGTH
 
 Below is a code tree for reference, in sequential order from top-to-bottom:
 
 compareSingle   ----    generateData    ----    makeProbe
                                         ----    makeScanGrid
                                         ----    makeObject
-                                        ----    makeSpectrum        ----    generateC
+                                        ----    makeSpectrum    
                                         ----    plotESWA
                                         ----    addNoise
+                                        ----    generateC
 
                 ----    ePIE            ----    iterationPlot
 
@@ -48,20 +60,19 @@ Finally, we run PaCMAN on the monochromatized diffraction patterns. Again,
 iterationPlot can be used to monitor reconstruction quality.
 
 ####################################################################################
-MULTI-WAVELENGTH
+MULTI-WAVELENGTH (work in progress)
 
 Next, we compare Ptychographic Information Multiplexing (PIM) and the Multi-spectral
 Partial Coherence Mitigation Algorithm with Noise (Ms. PaCMAN).
 
 Below is a code tree for reference, in sequential order from top-to-bottom:
 
-compareAlgos    ----    generateData    ----    makeProbe
-                                        ----    makeScanGrid
-                                        ----    makeObject
-                                        ----    makeSpectrum        ----    generateC
-                                        ----    addNoise
-                                        ----    addBackground
+compareAlgos    ----    generateData_multi    ----    makeProbe
+                                              ----    makeScanGrid
+                                              ----    makeObject
+                                              ----    makeSpectrum
+                                              ----    addNoise
 
-                ----    ePIE            ----    iterationPlot
+                ----    PIM                   ----    iterationPlot
 
-                ----    PaCMAN          ----    iterationPlot
+                ----    Ms_PaCMAN             ----    iterationPlot
