@@ -1,9 +1,9 @@
 function C = generateC(P)
-%GENERATEC Generates sparse matrix C satisfying b=Cm.
+%GENERATEC Generates sparse matrix C satisfying b=Cm. Here, b is the
+%broadband diffraction pattern with size N^2 x 1, with N being the number 
+%of pixels along x or y. m is the monochromatized diffraction pattern with 
+%size N^2 x 1.
 %==========================================================================
-% Here, b is the broadband diffraction pattern with size N^2 x 1, with N
-% being the number of pixels along x or y. m is the monochromatized
-% diffraction pattern with size N^2 x 1.
 
 %% Load Parameters
 Sw = P.Sw;

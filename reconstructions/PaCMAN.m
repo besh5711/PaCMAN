@@ -111,7 +111,7 @@ for n = 1:NIT
     % Initialize (or reset) object numerators to 0:
     [obj_den,obj_num] = deal(form(zeros(size(obj))));
         
-    % Calculate zbar (these are NOT fftshifted) [Step 1]:
+    % Calculate zbar (these are NOT fftshifted):
     zbar = IFT2(z + Lambda);
 
     %========================= Probe Update ===============================  
@@ -125,7 +125,7 @@ for n = 1:NIT
         % Precalculate sum of subobjects over all positions:
         prb_den = squeeze(sum(abs(subObj).^2,3));
     
-        % Update probe [Step 2]:
+        % Update probe:
         prb = (prb + prb_num) ./ (1 + prb_den + eps);
     
         % Apply support constraint to primary mode only (optional):
@@ -152,7 +152,7 @@ for n = 1:NIT
             + obj_den_sum;
     end
     
-    % Update object [Step 3]:
+    % Update object:
     obj = (obj + obj_num) ./ (1 + obj_den + eps);
     
     %======================= Update Field =================================  
@@ -164,25 +164,24 @@ for n = 1:NIT
     end
     
     % Calculate propagated updated exit waves (fftshifted) for this probe:
-    % [Step 4]
     for ns = 1:NS
         PSI(:,:,:,ns) = FT2(subObj(:,:,:,ns).*prb(:,:,ns));
     end
     
     %====================== Update Regularizers ===========================  
-    % Temporary variables [Step 4]:
+    % Temporary variables:
     modX = sqrt(sum((abs(PSI - Lambda)).^2,4) ...
         + abs(mubar-Lambda_hat).^2 + eps);
     rho = (r*modX +sqrt((r*modX).^2 + 4*(1+r).*ESWA.^2))./(2*(1+r));
     coeff = rho./modX;
     
-    % Update z, mu, and the average of mu [Step 5]:
+    % Update z, mu, and the average of mu:
     z = coeff.*(PSI - Lambda);
     mu = coeff.*(mubar - Lambda_hat);
     mubar = (1/NP)*sum(mu,3);
 
     %================= Update Background/Multipliers ======================      
-    % Update Lambdas [Step 6]:
+    % Update Lambdas:
     Lambda = Lambda + z - PSI;
     Lambda_hat = Lambda_hat + mu - mubar;
     

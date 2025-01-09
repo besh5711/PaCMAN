@@ -1,9 +1,10 @@
-function plotIterations_multi(fig,NIT,n,obj,prb,P,cenw)
-%ITERATIONPLOT Makes a plot of the modulus and phase of the object and
-%probe, as well as their respective errors for the current iteration.
+function plotIterations_multi(fig,NIT,n,obj,prb,P,cenw,cenw_g)
+%PLOTITERATIONS_MULTI Makes a plot of the modulus of the current iteration 
+%of the object and probe and compares it to the modulus of the exact object
+%and probe for the compareMulti script.
 %==========================================================================
-exa_obj = P.exa_obj(:,:,cenw);
-exa_prb = P.exa_prb(:,:,cenw);
+exa_obj = P.exa_obj(:,:,cenw_g);
+exa_prb = P.exa_prb(:,:,cenw_g);
 prb = prb(:,:,cenw);
 obj = obj(:,:,cenw);
 

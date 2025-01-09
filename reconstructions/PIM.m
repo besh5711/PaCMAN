@@ -10,7 +10,8 @@ NPRB = rP.NPRB;
 beta_prb = rP.beta_prb;
 beta_obj = rP.beta_obj;
 NW = rP.NW;
-cenw = ceil(NW/2);
+cenw = ceil(NW/2);          % index of center wavelength of reconstructions
+cenw_g = ceil(P.NW/2);      % index of cen wavelength of generated data
 
 % Data parameters:
 prbFlux = P.prbFlux;
@@ -182,7 +183,7 @@ for n = 1:NIT
 
     % Update plot of obj, prb, and errors:
     if rP.plotObjPrb == 1
-        plotIterations_multi(fig,NIT,n,obj,prb,P,cenw);
+        plotIterations_multi(fig,NIT,n,obj,prb,P,cenw,cenw_g);
     end
 end
 

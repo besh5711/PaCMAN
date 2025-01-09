@@ -1,5 +1,6 @@
-%COMPAREMULTI Compares PIM to Ms. PaCMAN for a single probe overlap,
-%bandwidth, and flux.
+%COMPAREMULTI Compares PIM to Ms. PaCMAN. Here, we assume that we have
+%multiple wavelength-dependent objects and probes, though we set them to be
+%scaled version of a single probe/object for simplicity.
 %==========================================================================
 
 close all; clear; clc
@@ -7,7 +8,7 @@ P.name = 'multi';
 
 %% Section 1: Initialize Data
 % Switch parameters (1=yes,0=no):
-P.useGPU = 0;               % use GPU
+P.useGPU = 1;               % use GPU
 P.useSinglePrec = 0;        % use single precision
 P.useShotNoise = 1;         % apply shot (Poisson) noise
 P.useDetectorNoise = 1;     % apply detector (Gaussian) noise
@@ -16,17 +17,15 @@ P.makeESWAIm = 0;           % display generated surface waves
 
 % Detector noise parameters:
 P.QE = 0.8;                 % quantum efficiency (0 to 1)
-P.sigmaReadout = 2;         % ?
-P.sensitivity = 1;          % ?
-P.bitDepth = 16;            % ?
-P.ADoffset = 100;           % ?
+P.sigmaReadout = 2;         % standard deviation of noise (in counts)
+P.bitDepth = 16;            % bit depth of camera
 
 % Illumination parameters:
 P.prbFlux = 1e8;                   % number of photons incident on object
 P.lambda = 4.13e-9;             % 300 eV, center wavelength [m]
 P.rel_bw = 0.2;                 % relative bandwidth (delta_lambda/lambda)
 P.lam_bw = P.lambda*P.rel_bw;   % actual FWHM intensity bandwidth [m]
-P.NW = 129;                     % number of wavelength samples in bandwidth
+P.NW = 5;                     % number of wavelength samples in bandwidth
 
 % Geometrical parameters:
 P.overSam = 4;              % oversampling (larger value, smaller probe)
@@ -50,8 +49,8 @@ P = generateData_multi(P);
 
 %% Section 3: PIM Reconstructions
 rP.NIT = 200;       % number of iterations
-rP.NPRB = 10;       % iteration at which probe starts updating
-rP.plotObjPrb = 1;  % plot object/probe at each iteration (1=yes,0=no)
+rP.NPRB = 5;       % iteration at which probe starts updating
+rP.plotObjPrb = 0;  % plot object/probe at each iteration (1=yes,0=no)
 rP.NW = 5;          % number of wavelengths to reconstruct
 
 % Object/probe gain:
@@ -83,14 +82,14 @@ fprintf('ePIE reconstruction is finished.\n')
 %% Section 4: Ms. PaCMAN Reconstructions
 % Iteration parameters:
 rP.NIT = 200;       % number of iterations
-rP.NPRB = 10;       % iteration at which probe starts updating
+rP.NPRB = 5;       % iteration at which probe starts updating
 rP.NN = 20;         % iteration at which noise is corrected
 rP.NS = 1;          % total number of spatial modes to use (default=1)
 rP.NW = 5;          % number of wavelengths to reconstruct
-rP.plotObjPrb = 1;  % plot object/probe at each iteration (1=yes,0=no)
+rP.plotObjPrb = 0;  % plot object/probe at each iteration (1=yes,0=no)
 
 % Regularizing parameter:
-rP.r = 1.5;
+rP.r = 0.6;
 
 % Load data:
 load(['data_' P.name '.mat'],'P')
@@ -123,31 +122,26 @@ camx = 30:85;
 camy = 90:145;
 
 % Initialize error/object matrices:
-objects = zeros(NC,NC,3);
-errors = zeros(1,3);
+objects = zeros(NC,NC,2);
+errors = zeros(1,2);
 
 exa_obj = P.exa_obj(cen,cen);
 
+cenw = ceil(rP.NW/2);
+
 % ePIE:
-save(['reconstruction_' P.name '_epie.mat'],'rP')
-obj = rP.rec_obj(cen,cen);
+load(['reconstruction_' P.name '_PIM.mat'],'rP')
+obj = rP.rec_obj(cen,cen,cenw);
 objects(:,:,1) = obj;
 errors(1) = NRMSE(obj(camx,camy),exa_obj(camx,camy));
 
 % PaCMAN without monochromatization:
-save(['reconstruction_' P.name '_PaCMAN.mat'],'rP')
-obj = rP.rec_obj(cen,cen);
+load(['reconstruction_' P.name '_Ms_PaCMAN.mat'],'rP')
+obj = rP.rec_obj(cen,cen,cenw);
 objects(:,:,2) = obj;
 errors(2) = NRMSE(obj(camx,camy),exa_obj(camx,camy));
 
-% PaCMAN with monochromatization (BiCGSTAB):
-save(['reconstruction_' P.name '_PaCMAN_BiCGSTAB.mat'],'rP')
-obj = rP.rec_obj(cen,cen);
-objects(:,:,3) = obj;
-errors(3) = NRMSE(obj(camx,camy),exa_obj(camx,camy));
-
 % Save the analyses:
-cd(P.reconPath)
 save([P.name '_analysis.mat'],'errors','objects','exa_obj');
 
 % Object tranmission limits for colorbar:
@@ -167,20 +161,15 @@ end
 %% Section 6: Plot
 fig = figure('windowstate','maximized');
 
-subplot(1,3,1)
+subplot(1,2,1)
 imagesc(abs(objects(camx,camy,1)))
 axis off; axis square; colorbar; caxis([clb cub])
-title(['ePIE: NRMSE = ' num2str(errors(1))])
-set(gca,'fontsize',24)
+title(['PIM: NRMSE = ' num2str(errors(1))])
+set(gca,'fontsize',16)
 
-subplot(1,3,2)
+subplot(1,2,2)
 imagesc(abs(objects(camx,camy,2)))
 axis off; axis square; colorbar; caxis([clb cub])
-title(['PaCMAN (no mono): NRMSE = ' num2str(errors(2))])
-set(gca,'fontsize',24)
+title(['Ms PaCMAN: NRMSE = ' num2str(errors(2))])
+set(gca,'fontsize',16)
 
-subplot(1,3,3)
-imagesc(abs(objects(camx,camy,3)))
-axis off; axis square; colorbar; caxis([clb cub])
-title(['PaCMAN (BiCGSTAB): NRMSE = ' num2str(errors(3))])
-set(gca,'fontsize',24)

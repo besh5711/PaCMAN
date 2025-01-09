@@ -1,5 +1,6 @@
 function ESWA_noise = addNoise(ESWA,P)
-%ADDNOISE Adds detector (Gaussian) and shot (Poisson) noise to ESWA.
+%ADDNOISE Adds parasitic scattering (constant triangular background), as 
+% well as detector (Gaussian) and shot (Poisson) noise to ESWA.
 %==========================================================================
 
 %% Parasitic Scattering

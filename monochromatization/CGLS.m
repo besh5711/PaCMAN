@@ -27,6 +27,9 @@ function X = CGLS(A,b,NK,reorth)
 
 % Per Christian Hansen, IMM, July 23, 2007.
 
+% Modified by Benjamin Shearer (2025).
+
+
 [~,n] = size(A);
 % X = zeros(n,NK);
 
@@ -72,11 +75,6 @@ while nk <= NK && solutionFound == 0
     Ad = A*d;
     alpha = normr2/(Ad'*Ad);
     x = x + alpha*d;
-    
-    %   % Impose constraints on x:
-    %   xft = ifftshift(ifft2(reshape(x,P.N,P.N)));
-    %   xft(rr > 2*P.prbR) = 0;
-    %   x = fft2(xft);        % support
 
     % Calculate error for this iteration:
     error(nk+1) = norm(A*x - b);
@@ -92,11 +90,6 @@ while nk <= NK && solutionFound == 0
 
     x = abs(x);
     xsol(:,nk+1) = x;
-    
-%         imagesc(reshape(sqrt(x),[sqrt(n),sqrt(n)])),colorbar;axis square
-%         title(num2str(j))
-%         drawnow
-%         pause(1)
     
     r  = r - alpha*Ad;
     s  = A'*r;

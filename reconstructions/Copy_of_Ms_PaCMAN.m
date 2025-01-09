@@ -1,6 +1,6 @@
 function rP = Ms_PaCMAN(rP,P,obj,prb,ESWA)
-%MS_PACMAN Runs the Multi-spectral Partial Coherence Mitigation Algorithm 
-% with Noise (Ms PaCMAN), returning the reconstructed object and probe.
+%PACMAN Runs the Partial Coherence and Monochromatization Algorithm with
+%Noise (PaCMAN), returning the reconstructed object and probe.
 %==========================================================================
 
 %% Initialize
@@ -11,8 +11,8 @@ NN = rP.NN;
 NS = rP.NS;
 r = rP.r;
 NW = rP.NW;
-cenw = ceil(NW/2);          % index of center wavelength of reconstructions
-cenw_g = ceil(P.NW/2);      % index of cen wavelength of generated data
+cenw = ceil(NW/2);
+cenw_gen = ceil(P.NW/2);
 
 % Data parameters:
 prbFlux = P.prbFlux;
@@ -116,22 +116,25 @@ xp = reshape(xcen,[1 1 N]) + round(xposn);
 yp = reshape(ycen,[1 1 N]) - round(yposn);
 
 % Initialize PaCMAN variables:
-[Lambda,z,PSI,subObj] = deal(form(zeros(N,N,NP,NW)));
+[Lambda,z,PSI,subObj] = deal(form(zeros(N,N,NP,NS,NW)));
 Lambda_hat = form(zeros(N,N,NP));
 mubar = form(zeros(N,N));
 
 % Initialize subobject matrix including each position and mode:
 for np = 1:NP
-    for nw = 1:NW
-        subObj(:,:,np,nw) = obj(yp(nw,np,:),xp(nw,np,:),nw);
+    for ns = 1:NS
+        for nw = 1:NW
+            subObj(:,:,np,ns,nw) = obj(yp(nw,np,:),xp(nw,np,:),ns,nw);
+        end
     end
 end
 
 % Initialize z (these are fftshifted):
-for nw = 1:NW
-    z(:,:,:,nw) = FT2(subObj(:,:,:,nw) .* prb(:,:,nw));
+for ns = 1:NS
+    for nw = 1:NW
+        z(:,:,:,ns,nw) = FT2(subObj(:,:,:,ns,nw) .* prb(:,:,ns,nw));
+    end
 end
-
 
 % Initialize figure if desired:
 if rP.plotObjPrb == 1; fig = figure('windowstate','maximized'); end
@@ -160,10 +163,10 @@ for n = 1:NIT
         prb = (prb + prb_num) ./ (1 + prb_den + eps);
     
         % Apply support constraint to primary spatial mode only (optional):
-        prb = prb.*mask;
+        prb(:,:,1,:) = prb(:,:,1,:).*mask;
     
         % Apply flux total flux constraint (optional):
-        prb = prb * sqrt(prbFlux/sum(abs(prb).^2,'all'));    
+        prb = prb*sqrt(prbFlux/sum(abs(prb).^2,'all'));    
     end
     
     %========================= Object Update ==============================  
@@ -178,7 +181,7 @@ for n = 1:NIT
             % Update numerator:
             obj_num(yp(nw,np,:),xp(nw,np,:),:,nw) = ...
                 obj_num(yp(nw,np,:),xp(nw,np,:),:,nw) ...
-                + conj(prb(:,:,nw)).*squeeze(zbar(:,:,np,nw));
+                + conj(prb(:,:,:,nw)).*squeeze(zbar(:,:,np,:,nw));
         
             % Update denominator:
             obj_den(yp(nw,np,:),xp(nw,np,:),:,nw) = ...
@@ -192,21 +195,25 @@ for n = 1:NIT
     %======================= Update Field =================================  
     % Update sub-object matrix:
     for np = 1:NP
-        for nw = 1:NW
-            subObj(:,:,np,nw) = obj(yp(nw,np,:),xp(nw,np,:),nw);
+        for ns = 1:NS
+            for nw = 1:NW
+                subObj(:,:,np,ns,nw) = obj(yp(nw,np,:),xp(nw,np,:),ns,nw);
+            end
         end
     end
     
     % Calculate propagated updated exit waves (fftshifted) for this probe:
-    for nw = 1:NW
-        PSI(:,:,:,nw) = FT2(subObj(:,:,:,nw).*prb(:,:,nw));
+    for ns = 1:NS
+        for nw = 1:NW
+            PSI(:,:,:,ns,nw) = FT2(subObj(:,:,:,ns,nw).*prb(:,:,ns,nw));
+        end
     end
     
     %====================== Update Regularizers ===========================  
     % Temporary variables:
-    modX = sqrt(sum((abs(PSI - Lambda)).^2,4) ...
+    modX = sqrt(sum((abs(PSI - Lambda)).^2,[4 5]) ...
         + abs(mubar-Lambda_hat).^2 + eps);
-    rho = (r*modX +sqrt((r*modX).^2 + 4*(1+r).*ESWA.^2))./(2*(1+r));
+    rho = (r*modX +sqrt((r*modX).^2 + 4*(Cp+r).*Cp.*ESWA.^2))./(2*(Cp+r));
     coeff = rho./modX;
     
     % Update z, mu, and the average of mu:
@@ -221,14 +228,14 @@ for n = 1:NIT
     
     % Enable structured noise correction at iteration NN:
     if n == NN
-        temp_avg = (1/NP) * sum(ESWA.^2 - sum(abs(PSI).^2,4),3);
+        temp_avg = (1/NP) * sum(ESWA.^2 - sum(abs(PSI).^2,[4 5]),3);
         temp_avg(temp_avg < 0) = 0;
         mubar = sqrt(temp_avg);
     end
 
     % Update plot of obj, prb, and errors:
     if rP.plotObjPrb == 1
-        plotIterations_multi(fig,NIT,n,obj,prb,P,cenw,cenw_g);
+        plotIterations_multi(fig,NIT,n,obj,prb,P,cenw);
     end
 end
 

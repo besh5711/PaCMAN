@@ -1,6 +1,7 @@
 function P = generateData_multi(P)
-%GENERATEDATA This function takes the inputs in structure P and computes
-%all the data required to perform the ptychographic reconstructions.
+%GENERATEDATA_MULTI This function takes the inputs in structure P and 
+%computes all the data required to perform the ptychographic
+%reconstructions for compareMulti.
 %==========================================================================
 
 %% Load Parameters

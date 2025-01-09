@@ -1,6 +1,6 @@
 function plotIterations(fig,NIT,n,obj,prb,P)
-%ITERATIONPLOT Makes a plot of the modulus and phase of the object and
-%probe, as well as their respective errors for the current iteration.
+%PLOTITERATIONS Makes a plot of the modulus of the current iteration of the
+%object and probe and compares it to the modulus of the exact object/probe.
 %==========================================================================
 exa_obj = P.exa_obj;
 exa_prb = P.exa_prb;

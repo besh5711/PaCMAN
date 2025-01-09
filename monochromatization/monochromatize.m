@@ -1,5 +1,5 @@
 function ESWA_mono = monochromatize(ESWA,P,rP)
-%MONOCHROMATIZE Monochromatizes ESWA.
+%MONOCHROMATIZE Monochromatizes ESWA using either BiCGSTAB or CGLS.
 %==========================================================================
 
 %% Load parameters:

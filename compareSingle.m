@@ -1,5 +1,5 @@
-%COMPAREALGOS Compares ePIE to PaCMAN for a single probe overlap,
-%bandwidth, and flux.
+%COMPARESINGLE Compares ePIE to PaCMAN. Here, we assume that we only have a
+%single wavelength-dependent object/probe.
 %==========================================================================
 
 close all; clear; clc
